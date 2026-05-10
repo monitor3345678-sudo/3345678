@@ -122,19 +122,36 @@
     <div id="chartStatus" style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;padding-top:4px;"></div>
   </div>
 
-  <!-- 圖2：加權指數 vs 三大法人 -->
+  <!-- 表格：最新7日三大法人淨多空 -->
   <div class="history-card" style="margin-bottom:14px;">
     <div class="section-header">
-      <div class="section-title">▪ 加權指數 vs 三大法人未平倉淨多空</div>
-      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted)">
-        <span style="display:inline-block;width:18px;height:2px;background:#b8860b;vertical-align:middle;margin-right:3px;"></span>加權指數（左軸）　
-        <span style="display:inline-block;width:10px;height:10px;background:rgba(44,95,138,0.3);vertical-align:middle;margin-right:3px;border:1px solid #2c5f8a;"></span>三大法人淨多空（右軸，口）
+      <div class="section-title">▪ 最新7日 加權指數 × 三大法人未平倉淨多空</div>
+      <div id="oiTableDate" style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">
+        <span class="spinner"></span>載入中...
       </div>
     </div>
-    <div style="position:relative;width:100%;height:260px;">
-      <canvas id="oiCanvas" role="img" aria-label="加權指數與三大法人淨多空走勢">加權指數與三大法人圖</canvas>
+    <div style="overflow-x:auto;">
+      <table id="oiTable" style="width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);">
+            <th style="padding:8px 10px;text-align:left;color:var(--text-muted);font-size:10px;letter-spacing:.1em;font-weight:normal;">日期</th>
+            <th style="padding:8px 10px;text-align:right;color:var(--text-muted);font-size:10px;letter-spacing:.1em;font-weight:normal;">加權指數</th>
+            <th style="padding:8px 10px;text-align:right;color:#2c5f8a;font-size:10px;letter-spacing:.1em;font-weight:normal;">外資淨多空</th>
+            <th style="padding:8px 10px;text-align:right;color:#b8860b;font-size:10px;letter-spacing:.1em;font-weight:normal;">投信淨多空</th>
+            <th style="padding:8px 10px;text-align:right;color:#8a7a65;font-size:10px;letter-spacing:.1em;font-weight:normal;">自營商淨多空</th>
+            <th style="padding:8px 10px;text-align:right;color:var(--text-primary);font-size:10px;letter-spacing:.1em;font-weight:normal;">三大合計</th>
+          </tr>
+        </thead>
+        <tbody id="oiTableBody">
+          <tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-muted);">
+            <span class="spinner"></span>載入中...
+          </td></tr>
+        </tbody>
+      </table>
     </div>
-    <div id="oiChartStatus" style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;padding-top:4px;"></div>
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:8px;">
+      單位：口　· 正值＝淨多單　負值＝淨空單　· 資料來源：台灣期交所 OpenAPI（盤後揭露）
+    </div>
   </div>
 
   <div class="source-note">
@@ -299,6 +316,9 @@ function renderOI(oi){
   document.getElementById('oiTotal').textContent=(net>=0?'+':'')+net.toLocaleString()+' 口';
   document.getElementById('oiTotal').className='oi-total-val '+c;
   document.getElementById('oiTotalDetail').textContent=`多 ${totL.toLocaleString()} ／ 空 ${totS.toLocaleString()}`;
+  // 同步更新7日表格
+  window._latestOI = oi;
+  renderOITable(buildOIRows(oi, window._latestTaiexMap ?? {}));
 }
 
 // ── Chart.js 共用設定 ─────────────────────────────────────────────────
@@ -348,31 +368,78 @@ function drawForexChart(dates,forexHist,taiexMap){
   });
 }
 
-// ── 圖2：加權指數 vs OI ───────────────────────────────────────────────
-function drawOIChart(dates,taiexMap,oiMap){
-  if(chart2){chart2.destroy();chart2=null;}
-  const canvas=document.getElementById('oiCanvas');
-  if(!canvas) return;
 
-  chart2=new Chart(canvas.getContext('2d'),{
-    type:'line',
-    data:{
-      labels:dates,
-      datasets:[
-        {label:'加權指數',data:dates.map(d=>taiexMap[d]??null),borderColor:'#b8860b',backgroundColor:'transparent',borderWidth:2,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:'#b8860b',tension:.3,yAxisID:'y',spanGaps:true,order:2},
-        {label:'三大法人淨多空',data:dates.map(d=>oiMap[d]??null),borderColor:'#2c5f8a',backgroundColor:'rgba(44,95,138,0.15)',fill:'origin',borderWidth:1.8,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:'#2c5f8a',tension:.3,yAxisID:'y2',spanGaps:true,order:1},
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{...CJ_TOOLTIP,callbacks:{label:ctx=>{const v=ctx.raw;if(v==null)return null;return ctx.datasetIndex===0?` 加權指數: ${v.toLocaleString()}`:` 三大法人淨多空: ${v>=0?'+':''}${v.toLocaleString()} 口`;}}}},
-      scales:{
-        x:CJ_X,
-        y:{position:'left',grid:{color:'#ece8e0'},ticks:{font:{size:10,family:'DM Mono,monospace'},color:'#b8860b',callback:v=>(v/1000).toFixed(0)+'K'}},
-        y2:{position:'right',grid:{display:false},ticks:{font:{size:10,family:'DM Mono,monospace'},color:'#2c5f8a',callback:v=>(v/1000).toFixed(0)+'K'}}
+// ── 7日三大法人表格 ───────────────────────────────────────────────────
+function renderOITable(rows7){
+  // rows7: [{date, taiex, foreign, trust, dealer}] 舊→新排列，最新在最上
+  const tbody = document.getElementById('oiTableBody');
+  if(!tbody) return;
+
+  const nc = n => n==null ? '<span style="color:var(--text-muted)">—</span>'
+    : `<span class="${n>0?'up':n<0?'down':'neutral'}">${n>=0?'+':''}${n.toLocaleString()}</span>`;
+
+  const taiexFmt = n => n==null
+    ? '<span style="color:var(--text-muted)">—</span>'
+    : n.toLocaleString('zh-TW');
+
+  tbody.innerHTML = rows7.map((r,i) => `
+    <tr style="border-bottom:1px solid rgba(224,216,200,0.5);${i===0?'background:rgba(44,95,138,0.04);font-weight:500;':''}">
+      <td style="padding:10px 10px;color:var(--text-muted);">${r.date}${i===0?' <span style="font-size:9px;color:var(--accent-blue);background:rgba(44,95,138,0.1);padding:1px 5px;border-radius:3px;">最新</span>':''}</td>
+      <td style="padding:10px 10px;text-align:right;">${taiexFmt(r.taiex)}</td>
+      <td style="padding:10px 10px;text-align:right;">${nc(r.foreign)}</td>
+      <td style="padding:10px 10px;text-align:right;">${nc(r.trust)}</td>
+      <td style="padding:10px 10px;text-align:right;">${nc(r.dealer)}</td>
+      <td style="padding:10px 10px;text-align:right;font-weight:500;">${nc(r.total)}</td>
+    </tr>`).join('');
+
+  document.getElementById('oiTableDate').textContent =
+    rows7[0]?.date ? `最新資料：${rows7[0].date}` : '盤後揭露';
+}
+
+// ── 組合7日資料（API最新一天 + 靜態備援）────────────────────────────
+function buildOIRows(apiOI, taiexMap){
+  // 從靜態資料取7筆
+  const staticRows = staticHistory
+    .filter(r => r.oiNet != null || r.taiex != null)
+    .slice(0, 7)
+    .map(r => ({
+      date:    r.date,
+      taiex:   taiexMap?.[r.date] ?? r.taiex ?? null,
+      foreign: r.oiLong && r.oiShort ? null : r.oiNet ?? null, // 若有分項則重算
+      trust:   null,
+      dealer:  null,
+      total:   r.oiNet ?? null,
+    }));
+
+  // 若 API 有最新資料，插入最前面（或覆蓋同日）
+  if(apiOI){
+    const net = (apiOI.fL-apiOI.fS) + (apiOI.tL-apiOI.tS) + (apiOI.dL-apiOI.dS);
+    const newRow = {
+      date:    apiOI.date,
+      taiex:   taiexMap?.[apiOI.date] ?? null,
+      foreign: apiOI.fL - apiOI.fS,
+      trust:   apiOI.tL - apiOI.tS,
+      dealer:  apiOI.dL - apiOI.dS,
+      total:   net,
+    };
+    // 若靜態資料第一筆日期相同則替換，否則插入
+    if(staticRows[0]?.date === apiOI.date){
+      staticRows[0] = newRow;
+    } else {
+      staticRows.unshift(newRow);
+    }
+  }
+
+  // 補靜態資料的分項（從 staticHistory 取 oiLong/oiShort）
+  return staticRows.slice(0,7).map(r => {
+    if(r.foreign == null){
+      const s = staticHistory.find(h => h.date === r.date);
+      if(s?.oiLong != null && s?.oiShort != null){
+        // staticHistory 只有合計，無分項
+        r.total = r.total ?? s.oiNet;
       }
     }
+    return r;
   });
 }
 
@@ -383,11 +450,11 @@ function initChartsStatic(){
   const forexHist=rows.filter(r=>r.usdtwd).map(r=>({date:r.date,buy:r.usdtwd-.075,sell:r.usdtwd+.075,mid:r.usdtwd}));
   const dates=rows.map(r=>r.date);
   drawForexChart(dates,forexHist,taiexMap);
-  const oiMap={};rows.forEach(r=>{if(r.oiNet!=null)oiMap[r.date]=r.oiNet;});
-  drawOIChart(dates,taiexMap,oiMap);
+  // 先用靜態資料渲染表格
+  renderOITable(buildOIRows(null, taiexMap));
 }
 
-// ── 圖表更新（用API資料）─────────────────────────────────────────────
+// ── 圖表 + 表格更新（用API資料）─────────────────────────────────────
 async function updateCharts(){
   document.getElementById('chartStatus').innerHTML='<span class="spinner"></span>載入資料...';
   const [taiexHist,forexHist]=await Promise.all([fetchTWSEHistory(),fetchBOTHistory()]);
@@ -404,11 +471,12 @@ async function updateCharts(){
 
   if(allDates.length>=5){
     drawForexChart(allDates,forexHist,taiexMap);
-    const oiMap={};staticHistory.filter(r=>r.oiNet!=null).forEach(r=>oiMap[r.date]=r.oiNet);
-    drawOIChart(allDates,taiexMap,oiMap);
   }
   document.getElementById('chartStatus').textContent='';
-  document.getElementById('oiChartStatus').textContent='';
+
+  // 更新 OI 表格（用最新 taiexMap 補加權指數）
+  window._latestTaiexMap = taiexMap;
+  if(window._latestOI) renderOITable(buildOIRows(window._latestOI, taiexMap));
 }
 
 // ── 主更新 ────────────────────────────────────────────────────────────
