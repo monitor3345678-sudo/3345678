@@ -122,38 +122,6 @@
     <div id="chartStatus" style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;padding-top:4px;"></div>
   </div>
 
-  <!-- 表格：最新7日三大法人淨多空 -->
-  <div class="history-card" style="margin-bottom:14px;">
-    <div class="section-header">
-      <div class="section-title">▪ 最新7日 加權指數 × 三大法人未平倉淨多空</div>
-      <div id="oiTableDate" style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">
-        <span class="spinner"></span>載入中...
-      </div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table id="oiTable" style="width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px;">
-        <thead>
-          <tr style="border-bottom:2px solid var(--border);">
-            <th style="padding:8px 10px;text-align:left;color:var(--text-muted);font-size:10px;letter-spacing:.1em;font-weight:normal;">日期</th>
-            <th style="padding:8px 10px;text-align:right;color:var(--text-muted);font-size:10px;letter-spacing:.1em;font-weight:normal;">加權指數</th>
-            <th style="padding:8px 10px;text-align:right;color:#2c5f8a;font-size:10px;letter-spacing:.1em;font-weight:normal;">外資淨多空</th>
-            <th style="padding:8px 10px;text-align:right;color:#b8860b;font-size:10px;letter-spacing:.1em;font-weight:normal;">投信淨多空</th>
-            <th style="padding:8px 10px;text-align:right;color:#8a7a65;font-size:10px;letter-spacing:.1em;font-weight:normal;">自營商淨多空</th>
-            <th style="padding:8px 10px;text-align:right;color:var(--text-primary);font-size:10px;letter-spacing:.1em;font-weight:normal;">三大合計</th>
-          </tr>
-        </thead>
-        <tbody id="oiTableBody">
-          <tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-muted);">
-            <span class="spinner"></span>載入中...
-          </td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-top:8px;">
-      單位：口　· 正值＝淨多單　負值＝淨空單　· 資料來源：台灣期交所 OpenAPI（盤後揭露）
-    </div>
-  </div>
-
   <div class="source-note">
     資料來源：
     <a href="https://mis.twse.com.tw" target="_blank">臺灣證券交易所</a> ·
@@ -505,4 +473,3 @@ setInterval(updateCharts,3600000);
 </script>
 </body>
 </html>
-
