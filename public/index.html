@@ -549,22 +549,16 @@ function parseCnyesChart(data){
   return null;
 }
 
-// Proxy 嘗試清單：allorigins → corsproxy → direct
+// 走 Netlify server-side proxy（與其他資料源相同，繞過 CSP）
 async function kFetch(url){
-  const proxies=[
-    u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-    u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
-    u=>u,
-  ];
-  for(const pFn of proxies){
-    try{
-      const r=await fetch(pFn(url),{signal:AbortSignal.timeout(9000)});
-      const j=await r.json();
-      const content=j?.contents?JSON.parse(j.contents):j;
-      if(content) return content;
-    }catch(e){}
+  try{
+    const r=await fetch(`/.netlify/functions/proxy?url=${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(15000)});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  }catch(e){
+    console.warn('kFetch failed:',e.message,url.slice(0,80));
+    return null;
   }
-  return null;
 }
 
 // ── Canvas 繪圖 ───────────────────────────────────────────────────
@@ -703,7 +697,7 @@ async function loadKlineData(){
     `https://ws.api.cnyes.com/ws/api/v1/charting/history?resolution=D&symbol=TWF:TXF&from=${K_FROM}&to=${K_NOW}`,
   ];
 
-  // 先嘗試鉅亨網各端點（均透過 allorigins/corsproxy）
+  // 先嘗試鉅亨網各端點（均透過 Netlify server-side proxy）
   for(const ep of cnyesEndpoints){
     setKLoader('嘗試鉅亨網 TXF…');
     try{
