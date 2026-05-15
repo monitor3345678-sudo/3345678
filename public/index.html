@@ -62,40 +62,34 @@
   .source-note a{color:var(--text-muted);text-decoration:none;}
   .source-note a:hover{color:var(--accent-blue);}
 
-  /* ── 週K線專用樣式 ── */
-  .kline-wrap{position:relative;width:100%;}
-  .kline-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
-  .kline-stat{background:#f0ebe0;border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
-  .kline-stat-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px;}
-  .kline-stat-val{font-family:var(--font-mono);font-size:17px;font-weight:500;}
-  .kline-canvas-wrap{position:relative;height:300px;width:100%;}
-  .kline-vol-wrap{position:relative;height:90px;width:100%;margin-top:6px;}
-  .kline-loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:var(--surface);border-radius:6px;z-index:5;}
-  .kline-loader-text{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);}
-  .kline-src{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);text-align:right;margin-top:6px;}
-
-  /* Tooltip */
-  #kTip{
+  /* ── 結算日K線樣式 ── */
+  .skline-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+  .skline-stat{background:#f0ebe0;border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+  .skline-stat-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;color:var(--text-muted);margin-bottom:4px;}
+  .skline-stat-val{font-family:var(--font-mono);font-size:17px;font-weight:500;}
+  .skline-canvas-wrap{position:relative;height:320px;width:100%;}
+  .skline-vol-wrap{position:relative;height:80px;width:100%;margin-top:6px;}
+  .skline-loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:var(--surface);border-radius:6px;z-index:5;}
+  .skline-src{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);text-align:right;margin-top:6px;}
+  #skTip{
     position:fixed;display:none;
     background:rgba(253,250,244,0.97);
-    border:1px solid var(--border);
-    border-radius:8px;padding:10px 14px;
-    font-family:var(--font-mono);font-size:11px;
-    line-height:1.9;pointer-events:none;
-    z-index:999;min-width:160px;
+    border:1px solid var(--border);border-radius:8px;
+    padding:10px 14px;font-family:var(--font-mono);font-size:11px;
+    line-height:1.9;pointer-events:none;z-index:999;min-width:170px;
     box-shadow:0 4px 20px rgba(100,80,50,.15);
   }
-  #kTip .tip-week{font-size:10px;color:var(--text-muted);letter-spacing:.06em;margin-bottom:2px;}
-  #kTip .tip-row{display:flex;justify-content:space-between;gap:18px;}
-  #kTip .tip-lbl{color:var(--text-muted);}
+  #skTip .stip-label{font-size:10px;color:var(--text-muted);margin-bottom:2px;}
+  #skTip .stip-row{display:flex;justify-content:space-between;gap:18px;}
+  #skTip .stip-lbl{color:var(--text-muted);}
 
   @media(max-width:640px){
     .cards-top{grid-template-columns:1fr;}
     .card-value{font-size:26px;}
     .oi-grid{grid-template-columns:1fr;}
     .oi-total-row{flex-direction:column;gap:6px;align-items:flex-start;}
-    .kline-stats{grid-template-columns:repeat(2,1fr);}
-    .kline-stat-val{font-size:14px;}
+    .skline-stats{grid-template-columns:repeat(2,1fr);}
+    .skline-stat-val{font-size:14px;}
   }
 </style>
 </head>
@@ -157,39 +151,32 @@
     <div id="chartStatus" style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center;padding-top:4px;"></div>
   </div>
 
-  <!-- 圖2：台指期近月 自訂週K線 -->
+  <!-- 結算日K線圖 -->
   <div class="history-card" style="margin-bottom:14px;">
     <div class="section-header">
-      <div class="section-title">▪ 台指期近月　週K線（24週）</div>
+      <div class="section-title">▪ 台指期　結算日K線（24口）</div>
       <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:10px;">
-        <span>週三→下週二</span>
-        <span id="kDateRange" style="color:var(--text-dim)">—</span>
+        <span>結算日→次月結算日前一日</span>
+        <span id="skDateRange" style="color:var(--text-dim)">—</span>
       </div>
     </div>
-
-    <!-- 統計卡 -->
-    <div class="kline-stats">
-      <div class="kline-stat"><div class="kline-stat-label">最新收盤</div><div class="kline-stat-val neutral" id="kClose">—</div></div>
-      <div class="kline-stat"><div class="kline-stat-label">本週漲跌</div><div class="kline-stat-val neutral" id="kChg">—</div></div>
-      <div class="kline-stat"><div class="kline-stat-label">24週最高</div><div class="kline-stat-val up" id="kHigh">—</div></div>
-      <div class="kline-stat"><div class="kline-stat-label">24週最低</div><div class="kline-stat-val down" id="kLow">—</div></div>
+    <div class="skline-stats">
+      <div class="skline-stat"><div class="skline-stat-label">最新收盤</div><div class="skline-stat-val neutral" id="skClose">—</div></div>
+      <div class="skline-stat"><div class="skline-stat-label">本期漲跌</div><div class="skline-stat-val neutral" id="skChg">—</div></div>
+      <div class="skline-stat"><div class="skline-stat-label">24期最高</div><div class="skline-stat-val up" id="skHigh">—</div></div>
+      <div class="skline-stat"><div class="skline-stat-label">24期最低</div><div class="skline-stat-val down" id="skLow">—</div></div>
     </div>
-
-    <!-- K線畫布 -->
-    <div class="kline-canvas-wrap" id="kWrap">
-      <div class="kline-loader" id="kLoader">
+    <div class="skline-canvas-wrap" id="skWrap">
+      <div class="skline-loader" id="skLoader">
         <span class="spinner"></span>
-        <span class="kline-loader-text" id="kLoaderMsg">嘗試連線鉅亨網…</span>
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)" id="skLoaderMsg">載入資料…</span>
       </div>
-      <canvas id="kCanvas" role="img" aria-label="台指期近月自訂週K線圖（週三至下週二）"></canvas>
+      <canvas id="skCanvas"></canvas>
     </div>
-
-    <!-- 成交量畫布 -->
-    <div class="kline-vol-wrap" id="vWrap">
-      <canvas id="vCanvas" role="img" aria-label="台指期週成交量"></canvas>
+    <div class="skline-vol-wrap" id="svWrap">
+      <canvas id="svCanvas"></canvas>
     </div>
-
-    <div class="kline-src" id="kSrc">資料來源：載入中…</div>
+    <div class="skline-src" id="skSrc">資料來源：Yahoo Finance ^TWII（加權指數替代）</div>
   </div>
 
   <div class="source-note">
@@ -201,15 +188,15 @@
   </div>
 </div>
 
-<!-- Tooltip -->
-<div id="kTip">
-  <div class="tip-week" id="tipWeek"></div>
-  <div class="tip-row"><span class="tip-lbl">開</span><span id="tipO"></span></div>
-  <div class="tip-row"><span class="tip-lbl">高</span><span id="tipH" class="up"></span></div>
-  <div class="tip-row"><span class="tip-lbl">低</span><span id="tipL" class="down"></span></div>
-  <div class="tip-row"><span class="tip-lbl">收</span><span id="tipC"></span></div>
-  <div class="tip-row"><span class="tip-lbl">漲跌</span><span id="tipChg"></span></div>
-  <div class="tip-row"><span class="tip-lbl">成交量</span><span id="tipV" style="color:var(--text-muted)"></span></div>
+
+<div id="skTip">
+  <div class="stip-label" id="skTipLabel"></div>
+  <div class="stip-row"><span class="stip-lbl">開</span><span id="skTipO"></span></div>
+  <div class="stip-row"><span class="stip-lbl">高</span><span id="skTipH" class="up"></span></div>
+  <div class="stip-row"><span class="stip-lbl">低</span><span id="skTipL" class="down"></span></div>
+  <div class="stip-row"><span class="stip-lbl">收</span><span id="skTipC"></span></div>
+  <div class="stip-row"><span class="stip-lbl">漲跌</span><span id="skTipChg"></span></div>
+  <div class="stip-row"><span class="stip-lbl">成交量</span><span id="skTipV" style="color:var(--text-muted)"></span></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -517,238 +504,246 @@ async function refresh(){
 }
 
 // ══════════════════════════════════════════════════════════════════
-// ██  台指期週K線  ████████████████████████████████████████████████
+// ██  台指期結算日K線  ████████████████████████████████████████████
 // ══════════════════════════════════════════════════════════════════
-const K_NOW  = Math.floor(Date.now()/1000);
-const K_FROM = K_NOW - 86400*200;
 
-// 自訂週期：週三(Wed=3) 為週首
-function getWeekKey(ts){
-  const d=new Date(ts*1000);
-  const shifted=(d.getDay()-3+7)%7;
-  const wed=new Date(d);wed.setDate(d.getDate()-shifted);
-  return wed.toISOString().slice(0,10);
+// 2024～2026 結算日靜態表（已含例外：2025/2月春節順延至2/19）
+const SETTLEMENT_DATES = [
+  '2024-01-17','2024-02-21','2024-03-20','2024-04-17','2024-05-15',
+  '2024-06-19','2024-07-17','2024-08-21','2024-09-18','2024-10-16',
+  '2024-11-20','2024-12-18',
+  '2025-01-15','2025-02-19','2025-03-19','2025-04-16','2025-05-21',
+  '2025-06-18','2025-07-16','2025-08-20','2025-09-17','2025-10-15',
+  '2025-11-19','2025-12-17',
+  '2026-01-21','2026-02-18','2026-03-18','2026-04-15','2026-05-20',
+  '2026-06-17','2026-07-15','2026-08-19','2026-09-16','2026-10-21',
+  '2026-11-18','2026-12-16',
+];
+
+// 日期字串 YYYY-MM-DD → 時間戳（台北時間）
+function dateToTs(str){
+  return new Date(str+'T00:00:00+08:00').getTime()/1000;
 }
 
-function buildWeekly(bars){
-  const map=new Map();
-  for(const b of bars){
-    const key=getWeekKey(b.ts);
-    if(!map.has(key)) map.set(key,{key,o:b.o,h:b.h,l:b.l,c:b.c,v:b.v||0});
-    else{const w=map.get(key);w.h=Math.max(w.h,b.h);w.l=Math.min(w.l,b.l);w.c=b.c;w.v+=b.v||0;}
+// 建立結算日K線（每口 = 上次結算日隔天～本次結算日當天）
+function buildSettlementBars(dailyBars){
+  // dailyBars: [{ts, o, h, l, c, v}] 按日期升冪
+  if(!dailyBars.length) return [];
+
+  // 找出今天之前有效的結算日
+  const nowTs = Date.now()/1000;
+  const validDates = SETTLEMENT_DATES.filter(d => dateToTs(d) <= nowTs + 86400);
+
+  const bars = [];
+  for(let i=1; i<validDates.length; i++){
+    const prevSettleTs = dateToTs(validDates[i-1]);
+    const thisSettleTs = dateToTs(validDates[i]);
+
+    // 找這段期間的日線（上次結算日隔天 ~ 本次結算日當天）
+    const slice = dailyBars.filter(b =>
+      b.ts > prevSettleTs && b.ts <= thisSettleTs + 86400
+    );
+    if(slice.length === 0) continue;
+
+    bars.push({
+      label: validDates[i].slice(0,7), // YYYY-MM 作為標籤
+      startDate: validDates[i-1],
+      endDate: validDates[i],
+      o: slice[0].o,
+      h: Math.max(...slice.map(b=>b.h)),
+      l: Math.min(...slice.map(b=>b.l)),
+      c: slice[slice.length-1].c,
+      v: slice.reduce((s,b)=>s+(b.v||0),0),
+      days: slice.length,
+    });
   }
-  return [...map.values()].sort((a,b)=>a.key>b.key?1:-1);
+  return bars;
 }
 
-function parseCnyesChart(data){
-  const d=data?.data||data?.items||data;
-  if(d?.t&&d?.o&&d?.h&&d?.l&&d?.c)
-    return d.t.map((ts,i)=>({ts,o:d.o[i],h:d.h[i],l:d.l[i],c:d.c[i],v:d.v?d.v[i]:0})).filter(b=>b.c!=null&&b.c>0);
-  if(Array.isArray(data))
-    return data.filter(d=>d.close||d.c).map(d=>({ts:d.time||d.ts||d.t||d.date,o:d.open||d.o,h:d.high||d.h,l:d.low||d.l,c:d.close||d.c,v:d.volume||d.v||0})).filter(b=>b.c>0);
-  return null;
-}
+// ── Canvas 繪圖 ────────────────────────────────────────────────────
+const SKP = {top:10, right:58, bottom:32, left:4};
+let _skBars=[], _skCtx=null, _svCtx=null;
 
-// 走 Netlify server-side proxy（與其他資料源相同，繞過 CSP）
-async function kFetch(url){
-  try{
-    const r=await fetch(`/.netlify/functions/proxy?url=${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(15000)});
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return await r.json();
-  }catch(e){
-    console.warn('kFetch failed:',e.message,url.slice(0,80));
-    return null;
-  }
-}
+function sk_p2y(p,h,mn,mx){return SKP.top+(1-(p-mn)/(mx-mn))*(h-SKP.top-SKP.bottom);}
+function sk_i2x(i,n,w){return SKP.left+(i+0.5)*((w-SKP.left-SKP.right)/n);}
 
-// ── Canvas 繪圖 ───────────────────────────────────────────────────
-const PAD={top:10,right:56,bottom:32,left:6};
-let _kBars=[],_kCtx=null,_vCtx=null;
-
-function p2y(p,h,mn,mx){return PAD.top+(1-(p-mn)/(mx-mn))*(h-PAD.top-PAD.bottom);}
-function i2x(i,n,w){return PAD.left+(i+0.5)*((w-PAD.left-PAD.right)/n);}
-
-function drawK(ctx,w,h,bars,allH,allL){
+function drawSK(ctx,w,h,bars,allH,allL){
   ctx.clearRect(0,0,w,h);
   const n=bars.length;
   const pad=(allH-allL)*0.05;
-  const mn=allL-pad,mx=allH+pad;
-  const bw=Math.max(3,(w-PAD.left-PAD.right)/n*0.55);
+  const mn=allL-pad, mx=allH+pad;
+  const bw=Math.max(3,(w-SKP.left-SKP.right)/n*0.58);
 
-  // Grid
+  // 格線
   ctx.lineWidth=0.5;
   for(let i=0;i<=5;i++){
     const val=mn+(mx-mn)*(i/5);
-    const y=PAD.top+(1-i/5)*(h-PAD.top-PAD.bottom);
+    const y=SKP.top+(1-i/5)*(h-SKP.top-SKP.bottom);
     ctx.strokeStyle='rgba(224,216,200,0.6)';
-    ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(w-PAD.right,y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(SKP.left,y);ctx.lineTo(w-SKP.right,y);ctx.stroke();
     ctx.fillStyle='#b0a090';ctx.font='9px DM Mono,monospace';ctx.textAlign='left';
-    ctx.fillText(fmtI(val),w-PAD.right+3,y+3);
+    ctx.fillText(fmtI(val),w-SKP.right+3,y+3);
   }
-  // X labels
+  // X 標籤（每3根一個）
   ctx.fillStyle='#b0a090';ctx.font='9px DM Mono,monospace';ctx.textAlign='center';
   for(let i=0;i<n;i++){
-    if(i%4===0||i===n-1) ctx.fillText(bars[i].key.slice(5),i2x(i,n,w),h-PAD.bottom+13);
+    if(i%3===0||i===n-1){
+      ctx.fillText(bars[i].label,sk_i2x(i,n,w),h-SKP.bottom+13);
+    }
   }
-  // Candles
+  // K線
   for(let i=0;i<n;i++){
-    const b=bars[i],x=i2x(i,n,w);
+    const b=bars[i], x=sk_i2x(i,n,w);
     const isUp=b.c>=b.o;
-    // 漲=紅(accent-green=#c0392b)，跌=綠(accent-red=#1a7a5e)，與site色系一致
     const color=isUp?'#c0392b':'#1a7a5e';
-    const yH=p2y(b.h,h,mn,mx),yL=p2y(b.l,h,mn,mx),yO=p2y(b.o,h,mn,mx),yC=p2y(b.c,h,mn,mx);
+    const yH=sk_p2y(b.h,h,mn,mx),yL=sk_p2y(b.l,h,mn,mx);
+    const yO=sk_p2y(b.o,h,mn,mx),yC=sk_p2y(b.c,h,mn,mx);
+    // 上下影線
     ctx.strokeStyle=color;ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(x,yH);ctx.lineTo(x,yL);ctx.stroke();
+    // 實體
     ctx.fillStyle=color;
     ctx.fillRect(x-bw/2,Math.min(yO,yC),bw,Math.max(1.5,Math.abs(yC-yO)));
   }
 }
 
-function drawV(ctx,w,h,bars){
+function drawSV(ctx,w,h,bars){
   ctx.clearRect(0,0,w,h);
   const n=bars.length;
   const maxV=Math.max(...bars.map(b=>b.v||0));
-  if(!maxV){ctx.fillStyle='#c8bfaf';ctx.font='10px DM Mono,monospace';ctx.fillText('成交量資料不可用',12,h/2);return;}
-  const bw=Math.max(3,(w-PAD.left-PAD.right)/n*0.58);
-  const vT=6,vB=18;
+  if(!maxV){
+    ctx.fillStyle='#c8bfaf';ctx.font='10px DM Mono,monospace';
+    ctx.fillText('成交量無資料',12,h/2);return;
+  }
+  const bw=Math.max(3,(w-SKP.left-SKP.right)/n*0.6);
+  const vT=4,vB=16;
   for(let i=0;i<n;i++){
     const b=bars[i];if(!b.v)continue;
-    const x=i2x(i,n,w),bh=(b.v/maxV)*(h-vT-vB);
+    const x=sk_i2x(i,n,w);
+    const bh=(b.v/maxV)*(h-vT-vB);
     ctx.fillStyle=b.c>=b.o?'rgba(192,57,43,0.55)':'rgba(26,122,94,0.55)';
     ctx.fillRect(x-bw/2,h-vB-bh,bw,bh);
   }
   ctx.fillStyle='#c8bfaf';ctx.font='9px DM Mono,monospace';ctx.textAlign='left';
-  ctx.fillText(fmtV(maxV),w-PAD.right+3,vT+10);
+  ctx.fillText(fmtV(maxV),w-SKP.right+3,vT+10);
 }
 
-function resizeK(){
-  const kWrap=document.getElementById('kWrap');
-  const vWrap=document.getElementById('vWrap');
-  const kC=document.getElementById('kCanvas');
-  const vC=document.getElementById('vCanvas');
-  kC.width=kWrap.offsetWidth;kC.height=kWrap.offsetHeight;
-  vC.width=vWrap.offsetWidth;vC.height=vWrap.offsetHeight;
+function resizeSK(){
+  const kC=document.getElementById('skCanvas');
+  const vC=document.getElementById('svCanvas');
+  kC.width=document.getElementById('skWrap').offsetWidth;
+  kC.height=document.getElementById('skWrap').offsetHeight;
+  vC.width=document.getElementById('svWrap').offsetWidth;
+  vC.height=document.getElementById('svWrap').offsetHeight;
 }
 
-function renderKCharts(){
-  if(!_kBars.length) return;
-  resizeK();
-  const allH=Math.max(..._kBars.map(b=>b.h));
-  const allL=Math.min(..._kBars.map(b=>b.l));
-  _kCtx=document.getElementById('kCanvas').getContext('2d');
-  _vCtx=document.getElementById('vCanvas').getContext('2d');
-  drawK(_kCtx,document.getElementById('kCanvas').width,document.getElementById('kCanvas').height,_kBars,allH,allL);
-  drawV(_vCtx,document.getElementById('vCanvas').width,document.getElementById('vCanvas').height,_kBars);
-  setupKHover(allH,allL);
+function renderSKCharts(){
+  if(!_skBars.length) return;
+  resizeSK();
+  const allH=Math.max(..._skBars.map(b=>b.h));
+  const allL=Math.min(..._skBars.map(b=>b.l));
+  _skCtx=document.getElementById('skCanvas').getContext('2d');
+  _svCtx=document.getElementById('svCanvas').getContext('2d');
+  drawSK(_skCtx,document.getElementById('skCanvas').width,document.getElementById('skCanvas').height,_skBars,allH,allL);
+  drawSV(_svCtx,document.getElementById('svCanvas').width,document.getElementById('svCanvas').height,_skBars);
+  setupSKHover(allH,allL);
 }
 
-// ── Hover / Tooltip ───────────────────────────────────────────────
-function setupKHover(allH,allL){
-  const canvas=document.getElementById('kCanvas');
-  const tip=document.getElementById('kTip');
-  const n=_kBars.length;
+function setupSKHover(allH,allL){
+  const canvas=document.getElementById('skCanvas');
+  const tip=document.getElementById('skTip');
+  const n=_skBars.length;
 
   canvas.onmousemove=e=>{
     const rect=canvas.getBoundingClientRect();
     const x=e.clientX-rect.left;
     const w=canvas.width;
-    const area=w-PAD.left-PAD.right;
-    const idx=Math.min(n-1,Math.max(0,Math.floor((x-PAD.left)/(area/n))));
-    const b=_kBars[idx];
-    const chgW=b.c-b.o,pct=(chgW/b.o*100).toFixed(2);
+    const area=w-SKP.left-SKP.right;
+    const idx=Math.min(n-1,Math.max(0,Math.floor((x-SKP.left)/(area/n))));
+    const b=_skBars[idx];
+    const chg=b.c-b.o, pct=(chg/b.o*100).toFixed(2);
 
-    // 重繪 + 十字線
-    drawK(_kCtx,w,canvas.height,_kBars,allH,allL);
-    const bx=i2x(idx,n,w);
-    _kCtx.strokeStyle='rgba(44,95,138,0.35)';_kCtx.lineWidth=1;_kCtx.setLineDash([3,3]);
-    _kCtx.beginPath();_kCtx.moveTo(bx,PAD.top);_kCtx.lineTo(bx,canvas.height-PAD.bottom);_kCtx.stroke();
-    _kCtx.setLineDash([]);
+    drawSK(_skCtx,w,canvas.height,_skBars,allH,allL);
+    const bx=sk_i2x(idx,n,w);
+    _skCtx.strokeStyle='rgba(44,95,138,0.35)';_skCtx.lineWidth=1;_skCtx.setLineDash([3,3]);
+    _skCtx.beginPath();_skCtx.moveTo(bx,SKP.top);_skCtx.lineTo(bx,canvas.height-SKP.bottom);_skCtx.stroke();
+    _skCtx.setLineDash([]);
 
-    document.getElementById('tipWeek').textContent='週 '+b.key;
-    document.getElementById('tipO').textContent=fmtI(b.o);
-    document.getElementById('tipH').textContent=fmtI(b.h);
-    document.getElementById('tipL').textContent=fmtI(b.l);
-    document.getElementById('tipC').textContent=fmtI(b.c);
-    const tc=document.getElementById('tipChg');
-    tc.textContent=`${chgW>=0?'+':''}${fmtI(chgW)} (${chgW>=0?'+':''}${pct}%)`;
-    tc.className=chgW>=0?'up':'down';
-    document.getElementById('tipV').textContent=fmtV(b.v);
+    document.getElementById('skTipLabel').textContent=`${b.startDate} → ${b.endDate}  (${b.days}個交易日)`;
+    document.getElementById('skTipO').textContent=fmtI(b.o);
+    document.getElementById('skTipH').textContent=fmtI(b.h);
+    document.getElementById('skTipL').textContent=fmtI(b.l);
+    document.getElementById('skTipC').textContent=fmtI(b.c);
+    const tc=document.getElementById('skTipChg');
+    tc.textContent=`${chg>=0?'+':''}${fmtI(chg)} (${chg>=0?'+':''}${pct}%)`;
+    tc.className=chg>=0?'up':'down';
+    document.getElementById('skTipV').textContent=fmtV(b.v);
 
     tip.style.display='block';
-    let tx=e.clientX+16,ty=e.clientY-10;
-    if(tx+175>window.innerWidth) tx=e.clientX-178;
+    let tx=e.clientX+16, ty=e.clientY-10;
+    if(tx+185>window.innerWidth) tx=e.clientX-190;
     tip.style.left=tx+'px';tip.style.top=ty+'px';
   };
   canvas.onmouseleave=()=>{
     tip.style.display='none';
-    drawK(_kCtx,canvas.width,canvas.height,_kBars,allH,allL);
+    drawSK(_skCtx,canvas.width,canvas.height,_skBars,allH,allL);
   };
 }
 
-// ── 資料載入 ──────────────────────────────────────────────────────
-function setKLoader(msg){const el=document.getElementById('kLoaderMsg');if(el)el.textContent=msg;}
+async function loadSettlementKline(){
+  document.getElementById('skLoaderMsg').textContent='載入資料…';
+  let daily=null;
 
-async function loadKlineData(){
-  let daily=null,srcLabel='';
-
-  const cnyesEndpoints=[
-    `https://ws.api.cnyes.com/ws/api/v1/charting/history?resolution=D&symbol=TWF:TXF1&from=${K_FROM}&to=${K_NOW}`,
-    `https://api.cnyes.com/media/api/v1/charting/history?resolution=D&symbol=TWF:TXF1&from=${K_FROM}&to=${K_NOW}`,
-    `https://ws.api.cnyes.com/ws/api/v1/charting/history?resolution=D&symbol=TWF:TXF&from=${K_FROM}&to=${K_NOW}`,
-  ];
-
-  // 先嘗試鉅亨網各端點（均透過 Netlify server-side proxy）
-  for(const ep of cnyesEndpoints){
-    setKLoader('嘗試鉅亨網 TXF…');
-    try{
-      const data=await kFetch(ep);
-      const bars=parseCnyesChart(data);
-      if(bars&&bars.length>=10){daily=bars;srcLabel='鉅亨網 TXF 近月';break;}
-    }catch(e){}
-  }
-
-  // Fallback：Yahoo Finance ^TWII
-  if(!daily){
-    setKLoader('改用 Yahoo Finance…');
-    const yhUrl=`https://query1.finance.yahoo.com/v8/finance/chart/%5ETWII?interval=1d&range=200d`;
-    const data=await kFetch(yhUrl);
-    const r=data?.chart?.result?.[0];
-    if(r?.timestamp){
-      const q=r.indicators.quote[0];
-      daily=r.timestamp.map((ts,i)=>({ts,o:q.open[i],h:q.high[i],l:q.low[i],c:q.close[i],v:q.volume[i]||0})).filter(b=>b.c!=null&&b.c>0);
-      srcLabel='Yahoo Finance ^TWII（加權指數替代）';
+  try{
+    const url='https://query1.finance.yahoo.com/v8/finance/chart/%5ETWII?interval=1d&range=700d';
+    const r=await fetch(`/.netlify/functions/proxy?url=${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(15000)});
+    if(r.ok){
+      const data=await r.json();
+      const res=data?.chart?.result?.[0];
+      if(res?.timestamp){
+        const q=res.indicators.quote[0];
+        daily=res.timestamp.map((ts,i)=>({
+          ts, o:q.open[i], h:q.high[i], l:q.low[i], c:q.close[i], v:q.volume[i]||0
+        })).filter(b=>b.c!=null&&b.c>0);
+      }
     }
-  }
+  }catch(e){console.warn('SK fetch failed:',e.message);}
 
   if(!daily||daily.length<10){
-    document.getElementById('kLoader').innerHTML=`<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">⚠ 資料載入失敗，請稍後重整</span>`;
+    document.getElementById('skLoader').innerHTML=
+      `<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">⚠ 資料載入失敗，請稍後重整</span>`;
     return;
   }
 
-  // 聚合自訂週線
-  const weekly=buildWeekly(daily).slice(-24);
-  _kBars=weekly;
+  const allBars = buildSettlementBars(daily);
+  const bars = allBars.slice(-24);
+  _skBars = bars;
+
+  if(bars.length<2){
+    document.getElementById('skLoader').innerHTML=
+      `<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)">⚠ 結算日資料不足</span>`;
+    return;
+  }
 
   // 統計卡
-  const last=weekly[weekly.length-1],prev=weekly[weekly.length-2];
-  const chg=last.c-prev.c,pct=(chg/prev.c*100);
-  const allH=Math.max(...weekly.map(b=>b.h));
-  const allL=Math.min(...weekly.map(b=>b.l));
-  document.getElementById('kClose').textContent=fmtI(last.c);
-  const kChgEl=document.getElementById('kChg');
-  kChgEl.textContent=`${chg>=0?'+':''}${fmtI(chg)} (${pct.toFixed(2)}%)`;
-  kChgEl.className='kline-stat-val '+(chg>=0?'up':'down');
-  document.getElementById('kHigh').textContent=fmtI(allH);
-  document.getElementById('kLow').textContent=fmtI(allL);
-  document.getElementById('kDateRange').textContent=`${weekly[0].key} ～ ${last.key}`;
-  document.getElementById('kSrc').textContent='資料來源：'+srcLabel;
+  const last=bars[bars.length-1], prev=bars[bars.length-2];
+  const chg=last.c-prev.c, pct=(chg/prev.c*100);
+  const allH=Math.max(...bars.map(b=>b.h));
+  const allL=Math.min(...bars.map(b=>b.l));
 
-  // 隱藏 loader，繪圖
-  document.getElementById('kLoader').style.display='none';
-  renderKCharts();
+  document.getElementById('skClose').textContent=fmtI(last.c);
+  const ce=document.getElementById('skChg');
+  ce.textContent=`${chg>=0?'+':''}${fmtI(chg)} (${pct.toFixed(2)}%)`;
+  ce.className='skline-stat-val '+(chg>=0?'up':'down');
+  document.getElementById('skHigh').textContent=fmtI(allH);
+  document.getElementById('skLow').textContent=fmtI(allL);
+  document.getElementById('skDateRange').textContent=`${bars[0].startDate} ～ ${last.endDate}`;
+
+  document.getElementById('skLoader').style.display='none';
+  renderSKCharts();
 }
 
-window.addEventListener('resize',()=>{if(_kBars.length)renderKCharts();});
+window.addEventListener('resize',()=>{if(_skBars.length)renderSKCharts();});
 
 // ══════════════════════════════════════════════════════════════════
 // 啟動
@@ -756,7 +751,7 @@ window.addEventListener('resize',()=>{if(_kBars.length)renderKCharts();});
 initChartsStatic();
 refresh();
 updateCharts();
-loadKlineData();
+loadSettlementKline();
 setInterval(refresh,60000);
 setInterval(updateCharts,3600000);
 </script>
